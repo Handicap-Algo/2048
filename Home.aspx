@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Home.aspx.cs"  %>
+<%@ Page Language="C#" AutoEventWireup="true"%>
 
 <!DOCTYPE html>
 
