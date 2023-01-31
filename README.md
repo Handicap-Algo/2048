@@ -1,3 +1,2 @@
-# FYP-test
-https://handicap-algo.github.io/FYP-test/
-123456
+# Brian ver 2048
+https://handicap-algo.github.io/2048/
