@@ -1,0 +1,261 @@
+<html>
+    <head>
+        <style>
+            body{
+                margin: 0;
+                overflow: hidden;
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+            }
+        </style>
+        <script>
+            function $(element){
+                return document.getElementById(element);
+            }
+            function style(element){
+                return $(element).style;
+            }
+            function rect(e){
+                e ?
+                    e = $(e) :
+                    e = document.body;
+                return e.getBoundingClientRect();
+            }
+            function create(id, loc= "", e="div"){
+                let name = document.createElement(e);
+                loc ?
+                    loc = $(loc):
+                    loc = document.body;
+                loc.appendChild(name);
+                name.setAttribute("id", id);
+                return id;
+            }
+            function init(){
+                let board = create("board");
+                style(board).height = "90vh";
+                style(board).width = "90vh";
+                style(board).display = "flex";
+                style(board).flexWrap = "wrap";
+                style(board).outline = "6px solid black";
+                style(board).outlineOffset = "-6px";
+
+                
+                let scoreboard = create("scoreboard");
+                style(scoreboard).height = "15vh";
+                style(scoreboard).width = "35vh";
+                style(scoreboard).fontSize = "3.5vw";
+                style(scoreboard).lineHeight = rect().height*0.075 +"px";
+                style(scoreboard).textAlign = "center";
+                $(scoreboard).innerHTML = "Score<br>0";
+                
+
+                for (i=1;i<5;i++){
+                    let row = create("row" + i, "board");
+                    style(row).width = "100%";
+                    style(row).height = "25%";
+                    style(row).display = "flex";
+                    style(row).flexWrap = "wrap";
+                    for (j=1;j<5;j++){
+                        let cell = create("cell" + parseInt(4*(i-1) + j), "row" + i);
+                        $(cell).setAttribute("class", "cell")
+                        style(cell).width = "25%";
+                        style(cell).height = "100%";
+                        style(cell).fontSize = "3.5vw";
+                        style(cell).lineHeight = rect(row).height + "px";
+                        style(cell).textAlign = "center";
+                        style(cell).outline = "3px solid black";
+                        style(cell).outlineOffset = "-3px";
+
+                    }
+                }
+                rand();
+            }   
+            function rand(){  
+                if (!isFull()){ // also hv to check isValidMove
+                    hasGen = false;
+                    while (!hasGen){
+                        rand1 = Math.floor(Math.random() * 4); // row
+                        rand2 = Math.floor(Math.random() * 4 + 1); // column
+                        rand3 = 2 * Math.floor(Math.random() * 2 + 1); // 2 or 4
+                        cellNo = parseInt(rand1*4 + rand2);
+                        if (matrix[rand1][rand2-1] == 0) {
+                            matrix[rand1][rand2-1] = rand3;
+                            hasGen = true;
+                        }
+                    }
+                    updateAllCells();
+                }
+            }
+            function updateAllCells(){
+                for (i=0;i<4;i++){
+                    for(j=0;j<4;j++){
+                        if (matrix[i][j] == 0){
+                            $("cell" + parseInt(i*4+j+1)).innerHTML = "";
+                        } else {
+                            $("cell" + parseInt(i*4+j+1)).innerHTML = matrix[i][j];
+                        }
+                    }
+                }
+                if (isFull()) {
+                    checkGameOver();
+                }
+                changeColor();
+            }
+            function changeColor(){
+                let cells = document.querySelectorAll(".cell"); //   [NEW] [JS] querySelectorAll vs getElementById
+                cells.forEach((cell) => { //   [NEW] [JS] for each loop & arrow function (full)
+                    switch (cell.innerHTML){
+                        case '':
+                            cell.style.backgroundColor = "transparent";
+                            break;
+                        case '2':
+                            cell.style.backgroundColor = "#eee4da";
+                            break;
+                        case '4':
+                            cell.style.backgroundColor = "#ede0c8";
+                            break;
+                        case '8':
+                            cell.style.backgroundColor = "#f2b179";
+                            break;
+                        case '16':
+                            cell.style.backgroundColor = "#f59563";
+                            break;
+                        case '32':
+                            cell.style.backgroundColor = "#f67c5f";
+                            break;
+                        case '64':
+                            cell.style.backgroundColor = "#f65e3b";
+                            break;
+                        case '128':
+                            cell.style.backgroundColor = "#edcf72";
+                            break;
+                        case '256':
+                            cell.style.backgroundColor = "#edcc61";
+                            break;
+                        case '512':
+                            cell.style.backgroundColor = "#edc850";
+                            break;
+                        case '1024':
+                            cell.style.backgroundColor = "#edc53f";
+                            break;
+                        case '2048':
+                            cell.style.backgroundColor = "#edc22e";
+                            break;
+                    }
+            });
+            }
+            function isFull(){
+                for (i=0;i<4;i++){
+                    for (j=0;j<4;j++){
+                        if (matrix[i][j] == 0) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            function checkGameOver(){
+                for (i=0;i<4;i++){
+                    for(j=0;j<3;j++){
+                        if (matrix[i][j] == matrix[i][j+1]){
+                            return;
+                        }
+                    }
+                }
+                for (i=0;i<3;i++){
+                    for(j=0;j<4;j++){
+                        if (matrix[i][j] == matrix[i+1][j]){
+                            return;
+                        }
+                    }
+                }
+                window.alert("Game over!");
+                window.removeEventListener("keydown", userInput);
+            }
+            function move(times){
+                var oldMatrix = [];
+                for (i=0; i<4; i++){
+                    tempArr = []
+                    for (j=0; j<4; j++){
+                        tempArr.push(matrix[i][j]);
+                    }
+                    oldMatrix.push(tempArr);
+                }    
+                
+                rotate(times);
+                shift();
+                add();
+                shift();
+                rotate(4-times);
+                if (""+matrix != ""+oldMatrix){
+                    rand();
+                }
+                
+            }
+            function rotate(times){
+                for (time=0;time<times;time++) {
+                    tempMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+                    for (i=0;i<4;i++){ 
+                        for (j=0;j<4;j++){
+                            tempMatrix[i][j] = matrix[j][3-i];
+                        }
+                    }
+    
+                    for (i=0;i<4;i++){ 
+                        for (j=0;j<4;j++){
+                            matrix[i][j] = tempMatrix[i][j];
+                        }
+                    }
+                }
+            }
+            function shift(){
+                for (i=0;i<4;i++) {
+                    for (j=1;j<4;j++) {
+                        for (k=1; k<j+1; k++) {
+                            if (matrix[i][j-k] == 0) {
+                                matrix[i][j-k] = matrix[i][j-k+1];
+                                matrix[i][j-k+1] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            function add(){
+                let score = parseInt($("scoreboard").innerHTML.substring(9));
+                for (i=0;i<4;i++) {
+                    for (j=0;j<3;j++) {
+                        if (matrix[i][j] == matrix[i][j+1]) {
+                            matrix[i][j] += matrix[i][j+1];
+                            matrix[i][j+1] = 0;
+                            score += matrix[i][j] + matrix[i][j+1];
+                        }
+                    }
+                }
+                $("scoreboard").innerHTML = "Score<br>" + score;
+            }
+            function userInput(){
+                switch (event.key) {
+                    case 'w':
+                        move(1);
+                        break;
+                    case 'a':
+                        move(0);
+                        break;
+                    case 's':
+                        move(3);
+                        break;
+                    case 'd':
+                        move(2);
+                        break;
+                }
+            }
+        </script>
+    </head>
+    <body onload = "init()">
+        <script>
+            matrix = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]];
+            window.addEventListener("keydown", userInput);
+        </script>
+    </body>
+</html>
